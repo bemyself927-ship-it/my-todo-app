@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 앱</title>
+
+  <!-- PWA 설정 -->
+  <meta name="theme-color" content="#4f8ef7">
+  <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;나의 앱&quot;,&quot;short_name&quot;:&quot;나의앱&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23ffffff&quot;,&quot;theme_color&quot;:&quot;%234f8ef7&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📋%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+
+  <!-- 폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===================================================
+       CSS 변수 (기존 뼈대 동일)
+       =================================================== */
+    :root {
+      --primary:        #4f8ef7;
+      --primary-light:  #e8f0fe;
+      --bg-main:        #f5f6fa;
+      --bg-sidebar:     #ffffff;
+      --card-bg:        #ffffff;
+      --text-primary:   #1a1a1a;
+      --text-secondary: #666666;
+      --text-tertiary:  #aaaaaa;
+      --border-color:   #e0e0e0;
+      --sidebar-width:  220px;
+      --font-main:      'Noto Sans KR', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-main); background: var(--bg-main); color: var(--text-primary); font-size: 14px; line-height: 1.6; }
+
+    /* 레이아웃 & 사이드바 (기존 뼈대 동일) */
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; transition: transform 0.25s ease; }
+    .sidebar-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border-color); }
+    .sidebar-logo { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+    .profile-area { display: flex; align-items: center; gap: 10px; }
+    .profile-photo { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; overflow: hidden; flex-shrink: 0; }
+    .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-info { flex: 1; min-width: 0; }
+    .profile-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .profile-quote { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; font-size: 14px; color: var(--text-secondary); transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; font-family: var(--font-main); }
+    .nav-item:hover { background: var(--bg-main); color: var(--text-primary); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+    .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border-color); display: flex; gap: 6px; flex-wrap: wrap; }
+    .sf-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--text-secondary); font-family: var(--font-main); transition: background 0.15s; }
+    .sf-btn:hover { background: var(--bg-main); }
+    .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 32px; min-height: 100vh; }
+
+    /* 페이지 & 모달 (기존 뼈대 동일) */
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { color: var(--text-secondary); font-size: 13px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .btn-primary { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: var(--font-main); transition: opacity 0.15s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 16px; font-size: 14px; cursor: pointer; font-family: var(--font-main); transition: background 0.15s; }
+    .btn-secondary:hover { background: var(--bg-main); }
+    .btn-danger { background: transparent; color: #e53e3e; border: 1px solid #e53e3e; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-family: var(--font-main); transition: background 0.15s; }
+    .btn-danger:hover { background: #fff5f5; }
+    .input-field { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: var(--font-main); background: #fff; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
+    .input-field:focus { border-color: var(--primary); }
+    .form-row { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary); }
+    .settings-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-color); margin-bottom: 24px; overflow-x: auto; }
+    .settings-tab { background: transparent; border: none; padding: 10px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-secondary); border-bottom: 3px solid transparent; margin-bottom: -2px; font-family: var(--font-main); transition: all 0.2s; white-space: nowrap; }
+    .settings-tab:hover { color: var(--text-primary); background: var(--bg-main); }
+    .settings-tab.active { color: var(--text-primary); border-bottom-color: var(--primary); }
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: #fff; border-radius: 12px; padding: 24px; width: 100%; max-width: 420px; margin: 16px; }
+    .modal-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 9999; transition: transform 0.25s ease; pointer-events: none; white-space: nowrap; }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    .mobile-top-bar { display: none; position: fixed; top: 0; left: 0; right: 0; height: 52px; background: #fff; border-bottom: 1px solid var(--border-color); align-items: center; padding: 0 16px; gap: 12px; z-index: 200; }
+    .mobile-hamburger { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px; color: var(--text-primary); }
+    .mobile-title { font-size: 16px; font-weight: 700; }
+    @media (max-width: 768px) { .mobile-top-bar { display: flex; } .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.15); } .main-content { margin-left: 0; padding: 72px 16px 24px; } }
+
+    /* ===================================================
+       🌟 새롭게 추가된 기능 스타일 (달력 & 할일 목록)
+       =================================================== */
+    .mini-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 320px; margin: 10px auto; font-size: 13px; text-align: center; }
+    .cal-header { font-weight: 600; color: var(--text-secondary); padding-bottom: 8px;}
+    .cal-day { padding: 5px; border-radius: 50%; width: 30px; height: 30px; line-height: 20px; margin: 0 auto; display: inline-block; color: var(--text-primary);}
+    .cal-today { background: var(--primary); color: white; font-weight: bold; }
+    
+    .task-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg-main); border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); }
+    .task-category { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: white; border: 1px solid var(--border-color); font-weight: 600; white-space: nowrap;}
+    .task-text { flex: 1; font-size: 15px; }
+    .task-completed { text-decoration: line-through; color: var(--text-tertiary); }
+  </style>
+</head>
+<body>
+
+  <!-- 모바일 상단 바 -->
+  <div class="mobile-top-bar" id="mobileTopBar">
+    <button class="mobile-hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="mobile-title" id="mobilePageTitle">나의 앱</div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- 사이드바 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">📋 나의 앱</div>
+        <div class="profile-area">
+          <div class="profile-photo" id="profilePhoto" onclick="showPage('settingsPage', null, '⚙️ 설정')">👤</div>
+          <div class="profile-info">
+            <div class="profile-name" id="profileName">이름을 설정하세요</div>
+            <div class="profile-quote" id="profileQuote">뭐든지 할 수 있어!</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="showPage('homePage', this, '🏠 홈')">🏠 홈</button>
+        <button class="nav-item" onclick="showPage('taskPage', this, '📝 할일 목록')">📝 할일 목록</button>
+        <button class="nav-item" onclick="showPage('settingsPage', this, '⚙️ 설정')">⚙️ 설정</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sf-btn" onclick="location.reload()" title="페이지 새로고침">🔄 새로고침</button>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+
+      <!-- 홈 페이지 -->
+      <div id="homePage" class="page active">
+        <div class="page-header">
+          <h2>🏠 홈</h2>
+          <p>환영합니다</p>
+        </div>
+        <div class="card">
+          <h3>시작하기</h3>
+          <p style="color: var(--text-secondary);">왼쪽 메뉴에서 '할일 목록'을 눌러 오늘 하루를 계획해 보세요!</p>
+        </div>
+      </div>
+
+      <!-- 🌟 할일 목록 페이지 (여기가 새롭게 바뀌었어요!) -->
+      <div id="taskPage" class="page">
+        <div class="page-header">
+          <h2>📝 할일 목록</h2>
+          <p>오늘 가장 중요한 3가지만 집중해 보세요.</p>
+        </div>
+        
+        <div class="card">
+          <!-- 1. 달력과 오늘 날짜 -->
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h3 id="todayDateDisplay" style="color: var(--primary); font-size: 20px; font-weight: 700; margin-bottom: 12px;">오늘 날짜</h3>
+            <div id="miniCalendar" class="mini-calendar"></div>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0;">
+
+          <!-- 2. 할일 추가하는 곳 -->
+          <div style="display: flex; gap: 8px; margin-bottom: 24px; align-items: center;">
+            <select id="taskCategory" class="input-field" style="width: 100px; flex-shrink: 0; cursor: pointer;">
+              <option value="중요">🔴 중요</option>
+              <option value="공부">📚 공부</option>
+              <option value="운동">🏃 운동</option>
+            </select>
+            <input type="text" id="taskInput" class="input-field" placeholder="오늘 할 일을 적어주세요 (최대 3개)" onkeypress="if(event.key === 'Enter') addTask()">
+            <button class="btn-primary" onclick="addTask()" style="flex-shrink: 0;">추가하기</button>
+          </div>
+
+          <!-- 3. 추가된 할일이 보이는 곳 -->
+          <div id="taskListArea">
+            <!-- 자바스크립트가 여기에 목록을 그려줍니다 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 설정 페이지 (기존 뼈대 동일) -->
+      <div id="settingsPage" class="page">
+        <div class="page-header"><h2>⚙️ 설정</h2><p>앱 설정을 관리하세요</p></div>
+        <div class="settings-tabs">
+          <button class="settings-tab active" onclick="showSettingsSection('profile', this)">👤 프로필</button>
+          <button class="settings-tab" onclick="showSettingsSection('design', this)">🎨 디자인</button>
+          <button class="settings-tab" onclick="showSettingsSection('data', this)">📦 데이터</button>
+        </div>
+        <div id="settingsSectionProfile" class="settings-section active">
+          <div class="card">
+            <h3>👤 프로필 설정</h3>
+            <div class="form-row" style="text-align: center; margin-bottom: 20px;">
+              <div id="profilePhotoPreview" onclick="document.getElementById('profilePhotoInput').click()" style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-light); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; margin: 0 auto 8px; overflow: hidden;">👤</div>
+              <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;" onchange="handleProfilePhoto(event)">
+            </div>
+            <div class="form-row"><label class="form-label">이름</label><input class="input-field" id="profileNameInput" type="text" placeholder="이름을 입력하세요"></div>
+            <div class="form-row"><label class="form-label">한마디</label><input class="input-field" id="profileQuoteInput" type="text" placeholder="뭐든지 할 수 있어!"></div>
+            <button class="btn-primary" onclick="saveProfile()">저장</button>
+          </div>
+        </div>
+        <div id="settingsSectionDesign" class="settings-section">
+          <div class="card">
+            <h3>🎨 디자인 설정</h3>
+            <div class="form-row"><label class="form-label">메인 포인트 색상</label>
+              <input type="color" id="colorPrimary" value="#4f8ef7" oninput="document.documentElement.style.setProperty('--primary', this.value); document.documentElement.style.setProperty('--primary-light', this.value + '22');" style="width: 40px; height: 32px;">
+            </div>
+            <div class="form-row"><label class="form-label">사이드바 배경 색상</label>
+              <input type="color" id="colorSidebar" value="#ffffff" oninput="document.documentElement.style.setProperty('--bg-sidebar', this.value);" style="width: 40px; height: 32px;">
+            </div>
+            <div class="form-row"><label class="form-label">기본 폰트</label>
+              <select class="input-field" id="fontFamily" onchange="document.documentElement.style.setProperty('--font-main', this.value);" style="width: auto;">
+                <option value="'Noto Sans KR', sans-serif">Noto Sans KR (기본)</option>
+                <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="saveDesign()">저장</button>
+            <button class="btn-secondary" style="margin-left: 8px;" onclick="resetDesign()">기본값으로</button>
+          </div>
+        </div>
+        <div id="settingsSectionData" class="settings-section">
+          <div class="card">
+            <h3>📦 데이터 관리</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">앱에 저장된 모든 데이터를 초기화합니다. 이 작업은 되돌릴 수 없어요.</p>
+            <button class="btn-danger" onclick="clearAllData()">🗑 모든 데이터 초기화</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 모달 & 토스트 (기존 동일) -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box">
+      <h3 id="modalTitle">확인</h3>
+      <p id="modalMessage" style="color: var(--text-secondary);"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">취소</button>
+        <button class="btn-primary" id="modalConfirmBtn">확인</button>
+      </div>
+    </div>
+  </div>
+  <div id="toast"></div>
+
+  <script>
+    // =====================================================
+    // 1. 유틸리티 & 화면 이동 함수 (기존 뼈대 동일)
+    // =====================================================
+    function showToast(message, duration = 2000) {
+      const t = document.getElementById('toast');
+      t.textContent = message; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), duration);
+    }
+    function showPage(pageId, navBtn, title) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      if (navBtn) navBtn.classList.add('active');
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('mobilePageTitle').textContent = title || '나의 앱';
+    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    function openModal(title, message, onConfirm) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalMessage').textContent = message;
+      document.getElementById('modal').classList.add('open');
+      document.getElementById('modalConfirmBtn').onclick = () => { onConfirm(); closeModal(); };
+    }
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+    function showSettingsSection(key, btn) {
+      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.settings-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('settingsSection' + key.charAt(0).toUpperCase() + key.slice(1)).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    // =====================================================
+    // 2. 프로필 & 디자인 설정 관련 (기존 뼈대 동일)
+    // =====================================================
+    var profileData = { name: '', quote: '', photo: '' };
+    function saveProfile() { profileData.name = document.getElementById('profileNameInput').value.trim(); profileData.quote = document.getElementById('profileQuoteInput').value.trim(); applyProfile(); showToast('✅ 프로필이 저장됐어요'); }
+    function handleProfilePhoto(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { profileData.photo = e.target.result; applyProfile(); showToast('✅ 사진이 저장됐어요'); }; reader.readAsDataURL(file); }
+    function applyProfile() { const name = profileData.name || '이름을 설정하세요'; const quote = profileData.quote || '뭐든지 할 수 있어!'; const photo = profileData.photo; document.getElementById('profileName').textContent = name; document.getElementById('profileQuote').textContent = quote; [document.getElementById('profilePhoto'), document.getElementById('profilePhotoPreview')].forEach(el => { if (el) el.innerHTML = photo ? '<img src="' + photo + '" alt="프로필">' : '👤'; }); }
+    function saveDesign() { applyDesignValues(); showToast('✅ 디자인이 저장됐어요'); }
+    function applyDesignValues() { const primary = document.getElementById('colorPrimary').value; const sidebar = document.getElementById('colorSidebar').value; const font = document.getElementById('fontFamily').value; document.documentElement.style.setProperty('--primary', primary); document.documentElement.style.setProperty('--primary-light', primary + '22'); document.documentElement.style.setProperty('--bg-sidebar', sidebar); document.documentElement.style.setProperty('--font-main', font); }
+    function resetDesign() { document.documentElement.style.removeProperty('--primary'); document.documentElement.style.removeProperty('--primary-light'); document.documentElement.style.removeProperty('--bg-sidebar'); document.documentElement.style.removeProperty('--font-main'); document.getElementById('colorPrimary').value = '#4f8ef7'; document.getElementById('colorSidebar').value = '#ffffff'; document.getElementById('fontFamily').value = "'Noto Sans KR', sans-serif"; showToast('↩️ 기본값으로 돌아왔어요'); }
+    function clearAllData() { openModal('데이터 초기화', '모든 데이터가 삭제됩니다. 정말 초기화할까요?', function() { localStorage.removeItem('myDailyTasks'); showToast('🗑 데이터가 초기화됐어요'); setTimeout(() => location.reload(), 800); }); }
+
+    // =====================================================
+    // 🌟 3. 새롭게 완성된 할일 관리 기능 (여기가 핵심!)
+    // =====================================================
+    
+    // 할일들을 담아둘 비밀 수첩(배열)입니다.
+    let tasks = []; 
+
+    // 달력과 오늘 날짜를 화면에 그려주는 기능
+    function renderCalendar() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth(); // 0부터 시작하므로 나중에 1을 더해줍니다
+      const date = today.getDate();
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      
+      // 화면에 "202X년 X월 X일 X요일" 표시하기
+      document.getElementById('todayDateDisplay').textContent = `${year}년 ${month + 1}월 ${date}일 ${dayNames[today.getDay()]}요일`;
+
+      // 달력 계산하기 (첫째 날의 요일, 이번달의 마지막 날짜)
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+
+      let calHtml = '';
+      // 1. 요일 이름 넣기 (일~토)
+      for (let d of dayNames) calHtml += `<div class="cal-header">${d}</div>`;
+      // 2. 1일 전까지 빈 칸 채우기
+      for (let i = 0; i < firstDay; i++) calHtml += `<div></div>`;
+      // 3. 1일부터 마지막 날까지 숫자 채우기
+      for (let i = 1; i <= lastDate; i++) {
+        // 만약 숫자가 오늘 날짜랑 같으면 예쁜 동그라미(cal-today) 스타일을 입혀줍니다.
+        const isToday = (i === date) ? 'cal-today' : '';
+        calHtml += `<div class="cal-day ${isToday}">${i}</div>`;
+      }
+      
+      // 계산한 달력을 화면에 쏙! 넣기
+      document.getElementById('miniCalendar').innerHTML = calHtml;
+    }
+
+    // 새로운 할일을 추가하는 기능
+    function addTask() {
+      // 규칙 1: 3개가 꽉 찼으면 막아버리기
+      if (tasks.length >= 3) {
+        showToast('오늘은 이미 3개의 목표가 있어요! 끝난 일을 지워주세요.');
+        return;
+      }
+      
+      const inputBox = document.getElementById('taskInput');
+      const categoryBox = document.getElementById('taskCategory');
+      const text = inputBox.value.trim(); // 적은 글씨 가져오기
+      
+      // 글씨를 안 적고 버튼을 누르면 알려주기
+      if (text === '') {
+        showToast('할 일을 먼저 적어주세요!');
+        return;
+      }
+
+      // 수첩(배열)에 할일 내용 적어넣기
+      tasks.push({
+        id: Date.now(),      // 할일의 고유 번호표
+        text: text,          // 내용
+        category: categoryBox.value, // 카테고리 (중요, 공부, 운동)
+        status: '시작전'     // 초기 상태는 '시작전'
+      });
+      
+      inputBox.value = ''; // 다음 글씨를 편하게 쓰도록 빈칸으로 비워두기
+      saveTasks();         // 브라우저에 저장
+      renderTaskList();    // 화면에 새로 그리기
+      showToast('새로운 할 일이 추가되었어요!');
+    }
+
+    // 할일의 상태(시작전/진행중/완료)를 바꾸는 기능 (드롭다운)
+    function changeTaskStatus(taskId, newStatus) {
+      // 번호표(taskId)가 일치하는 할일을 찾아서 상태를 바꿔줍니다.
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = newStatus;
+        saveTasks();
+        renderTaskList(); // 상태가 바뀌었으니 화면 다시 그리기
+      }
+    }
+
+    // 할일을 삭제하는(휴지통) 기능
+    function deleteTask(taskId) {
+      // 번호표(taskId)가 일치하는 할일만 쏙 빼고 남겨둡니다.
+      tasks = tasks.filter(t => t.id !== taskId);
+      saveTasks();
+      renderTaskList();
+      showToast('할 일이 삭제되었어요.');
+    }
+
+    // 수첩(배열)에 있는 할일들을 화면에 예쁘게 나열해주는 기능
+    function renderTaskList() {
+      const listArea = document.getElementById('taskListArea');
+      
+      // 수첩이 텅 비었다면 안내 문구 보여주기
+      if (tasks.length === 0) {
+        listArea.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: 40px 0;">아직 할 일이 없어요. 위에서 3가지 목표를 추가해 보세요!</p>';
+        return;
+      }
+
+      let html = '';
+      // 수첩에 있는 할일을 하나씩 꺼내서 예쁜 상자(HTML)로 포장합니다.
+      tasks.forEach(task => {
+        // 만약 상태가 '완료'라면 글씨에 취소선을 긋는 스타일을 준비합니다.
+        const completedStyle = task.status === '완료' ? 'task-completed' : '';
+        
+        html += `
+          <div class="task-item">
+            <span class="task-category">${task.category}</span>
+            <div class="task-text ${completedStyle}">${task.text}</div>
+            
+            <!-- 상태 변경 드롭다운 -->
+            <select class="input-field" style="width: 90px; padding: 6px; cursor: pointer;" onchange="changeTaskStatus(${task.id}, this.value)">
+              <option value="시작전" ${task.status === '시작전' ? 'selected' : ''}>시작전</option>
+              <option value="진행중" ${task.status === '진행중' ? 'selected' : ''}>진행중</option>
+              <option value="완료" ${task.status === '완료' ? 'selected' : ''}>완료</option>
+            </select>
+            
+            <button class="btn-danger" onclick="deleteTask(${task.id})">삭제</button>
+          </div>
+        `;
+      });
+      
+      // 포장한 상자들을 화면에 쏟아냅니다.
+      listArea.innerHTML = html;
+    }
+
+    // 브라우저 기억장치(localStorage)에 할일 저장하기 (새로고침해도 안 날아감)
+    function saveTasks() {
+      localStorage.setItem('myDailyTasks', JSON.stringify(tasks));
+    }
+
+    // 브라우저 기억장치에서 할일 불러오기
+    function loadTasks() {
+      const savedTasks = localStorage.getItem('myDailyTasks');
+      if (savedTasks) {
+        tasks = JSON.parse(savedTasks);
+      }
+    }
+
+    // =====================================================
+    // 앱이 켜질 때 제일 먼저 실행되는 부분
+    // =====================================================
+    window.addEventListener('load', function() {
+      applyProfile();
+      // 저장된 할일을 먼저 불러오고, 달력과 목록을 그립니다!
+      loadTasks();
+      renderCalendar(); 
+      renderTaskList();
+    });
+  </script>
+</body>
+</html>
