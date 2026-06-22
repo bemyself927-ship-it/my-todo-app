@@ -5,18 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>나의 앱</title>
 
-  <!-- PWA 설정 -->
   <meta name="theme-color" content="#4f8ef7">
-  <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;나의 앱&quot;,&quot;short_name&quot;:&quot;나의앱&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23ffffff&quot;,&quot;theme_color&quot;:&quot;%234f8ef7&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📋%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
-
-  <!-- 폰트 -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <style>
     /* ===================================================
-       CSS 변수 (기존 뼈대 동일)
+       CSS 기본 설정 (기존과 동일)
        =================================================== */
     :root {
       --primary:        #4f8ef7;
@@ -35,7 +29,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--font-main); background: var(--bg-main); color: var(--text-primary); font-size: 14px; line-height: 1.6; }
 
-    /* 레이아웃 & 사이드바 (기존 뼈대 동일) */
+    /* 레이아웃 & 사이드바 (기존 동일) */
     .app-container { display: flex; min-height: 100vh; }
     .sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; transition: transform 0.25s ease; }
     .sidebar-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border-color); }
@@ -55,7 +49,7 @@
     .sf-btn:hover { background: var(--bg-main); }
     .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 32px; min-height: 100vh; }
 
-    /* 페이지 & 모달 (기존 뼈대 동일) */
+    /* 페이지 & 모달 (기존 동일) */
     .page { display: none; }
     .page.active { display: block; }
     .page-header { margin-bottom: 24px; }
@@ -92,13 +86,25 @@
     @media (max-width: 768px) { .mobile-top-bar { display: flex; } .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.15); } .main-content { margin-left: 0; padding: 72px 16px 24px; } }
 
     /* ===================================================
-       🌟 새롭게 추가된 기능 스타일 (달력 & 할일 목록)
+       🌟 새롭게 추가된 요약판 및 1년 달력 스타일
        =================================================== */
-    .mini-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 320px; margin: 10px auto; font-size: 13px; text-align: center; }
+    /* 홈 요약판 카드 스타일 */
+    .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .stat-card h4 { color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .stat-card .num { font-size: 36px; font-weight: 700; color: var(--primary); }
+    @media (max-width: 600px) { .dashboard-grid { grid-template-columns: 1fr; } } /* 폰에서는 세로로 보이게 */
+
+    /* 1년 전체 달력 스타일 */
+    .full-cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .month-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .month-title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 12px; color: var(--primary); }
+
+    /* 달력 & 할일 목록 스타일 (기존 재사용) */
+    .mini-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 320px; margin: 0 auto; font-size: 13px; text-align: center; }
     .cal-header { font-weight: 600; color: var(--text-secondary); padding-bottom: 8px;}
     .cal-day { padding: 5px; border-radius: 50%; width: 30px; height: 30px; line-height: 20px; margin: 0 auto; display: inline-block; color: var(--text-primary);}
     .cal-today { background: var(--primary); color: white; font-weight: bold; }
-    
     .task-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg-main); border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); }
     .task-category { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: white; border: 1px solid var(--border-color); font-weight: 600; white-space: nowrap;}
     .task-text { flex: 1; font-size: 15px; }
@@ -107,7 +113,6 @@
 </head>
 <body>
 
-  <!-- 모바일 상단 바 -->
   <div class="mobile-top-bar" id="mobileTopBar">
     <button class="mobile-hamburger" onclick="toggleSidebar()">☰</button>
     <div class="mobile-title" id="mobilePageTitle">나의 앱</div>
@@ -115,7 +120,6 @@
 
   <div class="app-container">
 
-    <!-- 사이드바 -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">📋 나의 앱</div>
@@ -131,6 +135,8 @@
       <nav class="sidebar-nav">
         <button class="nav-item active" onclick="showPage('homePage', this, '🏠 홈')">🏠 홈</button>
         <button class="nav-item" onclick="showPage('taskPage', this, '📝 할일 목록')">📝 할일 목록</button>
+        <button class="nav-item" onclick="showPage('calendarPage', this, '📅 전체 달력')">📅 전체 달력</button>
+        <button class="nav-item" onclick="showPage('devnotesPage', this, '📋 개발괴발')">📋 개발괴발</button>
         <button class="nav-item" onclick="showPage('settingsPage', this, '⚙️ 설정')">⚙️ 설정</button>
       </nav>
 
@@ -139,38 +145,46 @@
       </div>
     </aside>
 
-    <!-- 메인 콘텐츠 -->
     <main class="main-content">
 
-      <!-- 홈 페이지 -->
       <div id="homePage" class="page active">
         <div class="page-header">
           <h2>🏠 홈</h2>
-          <p>환영합니다</p>
+          <p>오늘의 할 일 현황을 한눈에 확인하세요.</p>
         </div>
+        
+        <div class="dashboard-grid">
+          <div class="stat-card">
+            <h4>시작전</h4>
+            <div class="num" id="countTodo">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>진행중</h4>
+            <div class="num" id="countDoing">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>완료</h4>
+            <div class="num" id="countDone">0</div>
+          </div>
+        </div>
+        
         <div class="card">
           <h3>시작하기</h3>
           <p style="color: var(--text-secondary);">왼쪽 메뉴에서 '할일 목록'을 눌러 오늘 하루를 계획해 보세요!</p>
         </div>
       </div>
 
-      <!-- 🌟 할일 목록 페이지 (여기가 새롭게 바뀌었어요!) -->
       <div id="taskPage" class="page">
         <div class="page-header">
           <h2>📝 할일 목록</h2>
           <p>오늘 가장 중요한 3가지만 집중해 보세요.</p>
         </div>
-        
         <div class="card">
-          <!-- 1. 달력과 오늘 날짜 -->
           <div style="text-align: center; margin-bottom: 24px;">
             <h3 id="todayDateDisplay" style="color: var(--primary); font-size: 20px; font-weight: 700; margin-bottom: 12px;">오늘 날짜</h3>
             <div id="miniCalendar" class="mini-calendar"></div>
           </div>
-
           <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0;">
-
-          <!-- 2. 할일 추가하는 곳 -->
           <div style="display: flex; gap: 8px; margin-bottom: 24px; align-items: center;">
             <select id="taskCategory" class="input-field" style="width: 100px; flex-shrink: 0; cursor: pointer;">
               <option value="중요">🔴 중요</option>
@@ -180,15 +194,28 @@
             <input type="text" id="taskInput" class="input-field" placeholder="오늘 할 일을 적어주세요 (최대 3개)" onkeypress="if(event.key === 'Enter') addTask()">
             <button class="btn-primary" onclick="addTask()" style="flex-shrink: 0;">추가하기</button>
           </div>
-
-          <!-- 3. 추가된 할일이 보이는 곳 -->
-          <div id="taskListArea">
-            <!-- 자바스크립트가 여기에 목록을 그려줍니다 -->
-          </div>
+          <div id="taskListArea"></div>
         </div>
       </div>
 
-      <!-- 설정 페이지 (기존 뼈대 동일) -->
+      <div id="calendarPage" class="page">
+        <div class="page-header">
+          <h2 id="fullCalYearTitle">📅 전체 달력</h2>
+          <p>올해의 달력을 한눈에 확인해 보세요.</p>
+        </div>
+        <div id="fullCalendarArea" class="full-cal-grid"></div>
+      </div>
+
+      <div id="devnotesPage" class="page">
+        <div class="page-header">
+          <h2>📋 개발괴발</h2>
+          <p>바이브코딩 개발 학습 노트를 여기서 바로 확인하세요!</p>
+        </div>
+        <div class="card" style="padding: 0; overflow: hidden; height: 75vh;">
+          <iframe src="devnotes.html" style="width: 100%; height: 100%; border: none; display: block;"></iframe>
+        </div>
+      </div>
+
       <div id="settingsPage" class="page">
         <div class="page-header"><h2>⚙️ 설정</h2><p>앱 설정을 관리하세요</p></div>
         <div class="settings-tabs">
@@ -238,7 +265,6 @@
     </main>
   </div>
 
-  <!-- 모달 & 토스트 (기존 동일) -->
   <div class="modal-overlay" id="modal">
     <div class="modal-box">
       <h3 id="modalTitle">확인</h3>
@@ -253,39 +279,15 @@
 
   <script>
     // =====================================================
-    // 1. 유틸리티 & 화면 이동 함수 (기존 뼈대 동일)
+    // 1. 유틸리티 & 설정 (기존과 동일하므로 설명 생략)
     // =====================================================
-    function showToast(message, duration = 2000) {
-      const t = document.getElementById('toast');
-      t.textContent = message; t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), duration);
-    }
-    function showPage(pageId, navBtn, title) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
-      if (navBtn) navBtn.classList.add('active');
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('mobilePageTitle').textContent = title || '나의 앱';
-    }
+    function showToast(message, duration = 2000) { const t = document.getElementById('toast'); t.textContent = message; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), duration); }
+    function showPage(pageId, navBtn, title) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); document.getElementById(pageId).classList.add('active'); if (navBtn) navBtn.classList.add('active'); document.getElementById('sidebar').classList.remove('open'); document.getElementById('mobilePageTitle').textContent = title || '나의 앱'; }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-    function openModal(title, message, onConfirm) {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalMessage').textContent = message;
-      document.getElementById('modal').classList.add('open');
-      document.getElementById('modalConfirmBtn').onclick = () => { onConfirm(); closeModal(); };
-    }
+    function openModal(title, message, onConfirm) { document.getElementById('modalTitle').textContent = title; document.getElementById('modalMessage').textContent = message; document.getElementById('modal').classList.add('open'); document.getElementById('modalConfirmBtn').onclick = () => { onConfirm(); closeModal(); }; }
     function closeModal() { document.getElementById('modal').classList.remove('open'); }
-    function showSettingsSection(key, btn) {
-      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.settings-tab').forEach(b => b.classList.remove('active'));
-      document.getElementById('settingsSection' + key.charAt(0).toUpperCase() + key.slice(1)).classList.add('active');
-      if (btn) btn.classList.add('active');
-    }
+    function showSettingsSection(key, btn) { document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.settings-tab').forEach(b => b.classList.remove('active')); document.getElementById('settingsSection' + key.charAt(0).toUpperCase() + key.slice(1)).classList.add('active'); if (btn) btn.classList.add('active'); }
 
-    // =====================================================
-    // 2. 프로필 & 디자인 설정 관련 (기존 뼈대 동일)
-    // =====================================================
     var profileData = { name: '', quote: '', photo: '' };
     function saveProfile() { profileData.name = document.getElementById('profileNameInput').value.trim(); profileData.quote = document.getElementById('profileQuoteInput').value.trim(); applyProfile(); showToast('✅ 프로필이 저장됐어요'); }
     function handleProfilePhoto(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { profileData.photo = e.target.result; applyProfile(); showToast('✅ 사진이 저장됐어요'); }; reader.readAsDataURL(file); }
@@ -295,155 +297,159 @@
     function resetDesign() { document.documentElement.style.removeProperty('--primary'); document.documentElement.style.removeProperty('--primary-light'); document.documentElement.style.removeProperty('--bg-sidebar'); document.documentElement.style.removeProperty('--font-main'); document.getElementById('colorPrimary').value = '#4f8ef7'; document.getElementById('colorSidebar').value = '#ffffff'; document.getElementById('fontFamily').value = "'Noto Sans KR', sans-serif"; showToast('↩️ 기본값으로 돌아왔어요'); }
     function clearAllData() { openModal('데이터 초기화', '모든 데이터가 삭제됩니다. 정말 초기화할까요?', function() { localStorage.removeItem('myDailyTasks'); showToast('🗑 데이터가 초기화됐어요'); setTimeout(() => location.reload(), 800); }); }
 
+
     // =====================================================
-    // 🌟 3. 새롭게 완성된 할일 관리 기능 (여기가 핵심!)
+    // 🌟 2. 요약판 및 전체 달력 기능 추가!
     // =====================================================
-    
-    // 할일들을 담아둘 비밀 수첩(배열)입니다.
     let tasks = []; 
 
-    // 달력과 오늘 날짜를 화면에 그려주는 기능
+    // [기능 추가 1] 홈 화면의 대시보드(요약판) 숫자를 세어주는 기능
+    function updateDashboard() {
+      // 수첩(tasks)을 뒤져서 상태별로 몇 개인지 셉니다.
+      const todoCount = tasks.filter(t => t.status === '시작전').length;
+      const doingCount = tasks.filter(t => t.status === '진행중').length;
+      const doneCount = tasks.filter(t => t.status === '완료').length;
+      
+      // 화면의 예쁜 카드에 숫자를 꽂아 넣습니다.
+      document.getElementById('countTodo').textContent = todoCount;
+      document.getElementById('countDoing').textContent = doingCount;
+      document.getElementById('countDone').textContent = doneCount;
+    }
+
+    // [기능 추가 2] 1년치 달력을 한 번에 그려주는 기능
+    function renderFullCalendar() {
+      const year = new Date().getFullYear(); // 올해 연도 가져오기
+      document.getElementById('fullCalYearTitle').textContent = `📅 ${year}년 전체 달력`;
+      
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      let fullCalHtml = '';
+      
+      // 1월(0)부터 12월(11)까지 반복해서 달력을 12개 만듭니다.
+      for (let m = 0; m < 12; m++) {
+        fullCalHtml += `<div class="month-card"><div class="month-title">${m + 1}월</div><div class="mini-calendar">`;
+        
+        // 요일 헤더
+        for (let d of dayNames) fullCalHtml += `<div class="cal-header">${d}</div>`;
+        
+        // 달력 계산
+        const firstDay = new Date(year, m, 1).getDay();
+        const lastDate = new Date(year, m + 1, 0).getDate();
+        
+        // 빈칸 채우기
+        for (let i = 0; i < firstDay; i++) fullCalHtml += `<div></div>`;
+        
+        // 날짜 채우기 (오늘 날짜면 예쁜 색깔 칠하기)
+        const today = new Date();
+        for (let i = 1; i <= lastDate; i++) {
+          const isToday = (year === today.getFullYear() && m === today.getMonth() && i === today.getDate()) ? 'cal-today' : '';
+          fullCalHtml += `<div class="cal-day ${isToday}">${i}</div>`;
+        }
+        
+        fullCalHtml += `</div></div>`; // 달력 상자 닫기
+      }
+      
+      // 만든 12개의 달력을 '전체 달력' 화면에 뿌려줍니다.
+      document.getElementById('fullCalendarArea').innerHTML = fullCalHtml;
+    }
+
+    // (할일 목록의 오늘 작은 달력 그리기 - 기존 동일)
     function renderCalendar() {
       const today = new Date();
       const year = today.getFullYear();
-      const month = today.getMonth(); // 0부터 시작하므로 나중에 1을 더해줍니다
+      const month = today.getMonth();
       const date = today.getDate();
       const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
       
-      // 화면에 "202X년 X월 X일 X요일" 표시하기
       document.getElementById('todayDateDisplay').textContent = `${year}년 ${month + 1}월 ${date}일 ${dayNames[today.getDay()]}요일`;
 
-      // 달력 계산하기 (첫째 날의 요일, 이번달의 마지막 날짜)
       const firstDay = new Date(year, month, 1).getDay();
       const lastDate = new Date(year, month + 1, 0).getDate();
 
       let calHtml = '';
-      // 1. 요일 이름 넣기 (일~토)
       for (let d of dayNames) calHtml += `<div class="cal-header">${d}</div>`;
-      // 2. 1일 전까지 빈 칸 채우기
       for (let i = 0; i < firstDay; i++) calHtml += `<div></div>`;
-      // 3. 1일부터 마지막 날까지 숫자 채우기
       for (let i = 1; i <= lastDate; i++) {
-        // 만약 숫자가 오늘 날짜랑 같으면 예쁜 동그라미(cal-today) 스타일을 입혀줍니다.
         const isToday = (i === date) ? 'cal-today' : '';
         calHtml += `<div class="cal-day ${isToday}">${i}</div>`;
       }
-      
-      // 계산한 달력을 화면에 쏙! 넣기
       document.getElementById('miniCalendar').innerHTML = calHtml;
     }
 
-    // 새로운 할일을 추가하는 기능
+    // 할일 추가
     function addTask() {
-      // 규칙 1: 3개가 꽉 찼으면 막아버리기
-      if (tasks.length >= 3) {
-        showToast('오늘은 이미 3개의 목표가 있어요! 끝난 일을 지워주세요.');
-        return;
-      }
-      
+      if (tasks.length >= 3) { showToast('오늘은 이미 3개의 목표가 있어요! 끝난 일을 지워주세요.'); return; }
       const inputBox = document.getElementById('taskInput');
       const categoryBox = document.getElementById('taskCategory');
-      const text = inputBox.value.trim(); // 적은 글씨 가져오기
-      
-      // 글씨를 안 적고 버튼을 누르면 알려주기
-      if (text === '') {
-        showToast('할 일을 먼저 적어주세요!');
-        return;
-      }
+      const text = inputBox.value.trim(); 
+      if (text === '') { showToast('할 일을 먼저 적어주세요!'); return; }
 
-      // 수첩(배열)에 할일 내용 적어넣기
-      tasks.push({
-        id: Date.now(),      // 할일의 고유 번호표
-        text: text,          // 내용
-        category: categoryBox.value, // 카테고리 (중요, 공부, 운동)
-        status: '시작전'     // 초기 상태는 '시작전'
-      });
-      
-      inputBox.value = ''; // 다음 글씨를 편하게 쓰도록 빈칸으로 비워두기
-      saveTasks();         // 브라우저에 저장
-      renderTaskList();    // 화면에 새로 그리기
+      tasks.push({ id: Date.now(), text: text, category: categoryBox.value, status: '시작전' });
+      inputBox.value = ''; 
+      saveTasks();
+      renderTaskList();
       showToast('새로운 할 일이 추가되었어요!');
     }
 
-    // 할일의 상태(시작전/진행중/완료)를 바꾸는 기능 (드롭다운)
+    // 상태 변경
     function changeTaskStatus(taskId, newStatus) {
-      // 번호표(taskId)가 일치하는 할일을 찾아서 상태를 바꿔줍니다.
       const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        task.status = newStatus;
-        saveTasks();
-        renderTaskList(); // 상태가 바뀌었으니 화면 다시 그리기
-      }
+      if (task) { task.status = newStatus; saveTasks(); renderTaskList(); }
     }
 
-    // 할일을 삭제하는(휴지통) 기능
+    // 삭제
     function deleteTask(taskId) {
-      // 번호표(taskId)가 일치하는 할일만 쏙 빼고 남겨둡니다.
       tasks = tasks.filter(t => t.id !== taskId);
       saveTasks();
       renderTaskList();
       showToast('할 일이 삭제되었어요.');
     }
 
-    // 수첩(배열)에 있는 할일들을 화면에 예쁘게 나열해주는 기능
+    // 목록 그리기
     function renderTaskList() {
       const listArea = document.getElementById('taskListArea');
       
-      // 수첩이 텅 비었다면 안내 문구 보여주기
+      // 🌟 목록이 그려질 때마다 '홈 화면 요약판'도 같이 업데이트 되도록 마법을 걸었습니다!
+      updateDashboard();
+
       if (tasks.length === 0) {
         listArea.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: 40px 0;">아직 할 일이 없어요. 위에서 3가지 목표를 추가해 보세요!</p>';
         return;
       }
 
       let html = '';
-      // 수첩에 있는 할일을 하나씩 꺼내서 예쁜 상자(HTML)로 포장합니다.
       tasks.forEach(task => {
-        // 만약 상태가 '완료'라면 글씨에 취소선을 긋는 스타일을 준비합니다.
         const completedStyle = task.status === '완료' ? 'task-completed' : '';
-        
         html += `
           <div class="task-item">
             <span class="task-category">${task.category}</span>
             <div class="task-text ${completedStyle}">${task.text}</div>
-            
-            <!-- 상태 변경 드롭다운 -->
             <select class="input-field" style="width: 90px; padding: 6px; cursor: pointer;" onchange="changeTaskStatus(${task.id}, this.value)">
               <option value="시작전" ${task.status === '시작전' ? 'selected' : ''}>시작전</option>
               <option value="진행중" ${task.status === '진행중' ? 'selected' : ''}>진행중</option>
               <option value="완료" ${task.status === '완료' ? 'selected' : ''}>완료</option>
             </select>
-            
             <button class="btn-danger" onclick="deleteTask(${task.id})">삭제</button>
           </div>
         `;
       });
-      
-      // 포장한 상자들을 화면에 쏟아냅니다.
       listArea.innerHTML = html;
     }
 
-    // 브라우저 기억장치(localStorage)에 할일 저장하기 (새로고침해도 안 날아감)
-    function saveTasks() {
-      localStorage.setItem('myDailyTasks', JSON.stringify(tasks));
-    }
-
-    // 브라우저 기억장치에서 할일 불러오기
+    function saveTasks() { localStorage.setItem('myDailyTasks', JSON.stringify(tasks)); }
     function loadTasks() {
       const savedTasks = localStorage.getItem('myDailyTasks');
-      if (savedTasks) {
-        tasks = JSON.parse(savedTasks);
-      }
+      if (savedTasks) { tasks = JSON.parse(savedTasks); }
     }
 
     // =====================================================
-    // 앱이 켜질 때 제일 먼저 실행되는 부분
+    // 앱이 켜질 때 실행되는 부분
     // =====================================================
     window.addEventListener('load', function() {
       applyProfile();
-      // 저장된 할일을 먼저 불러오고, 달력과 목록을 그립니다!
       loadTasks();
       renderCalendar(); 
-      renderTaskList();
+      renderFullCalendar(); // 🌟 앱을 켜자마자 1년치 달력도 미리 그려둡니다.
+      renderTaskList();     // 🌟 목록을 그리면서 요약판(대시보드)도 같이 계산됩니다.
     });
   </script>
 </body>
